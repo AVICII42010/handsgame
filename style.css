@@ -803,11 +803,25 @@ button:active {
 }
 
 .home-secondary-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
     margin-top: 14px;
+    width: 100%;
+    align-items: stretch;
+}
+
+.home-secondary-actions .secondary-btn {
+    width: 100%;
+    margin: 0;
+    padding: 14px 12px;
+    border-radius: 18px;
+    font-size: 1rem;
+}
+
+.home-secondary-actions #leaderboard-btn {
+    width: 100%;
+    margin: 0;
 }
 
 .small-btn {
@@ -1141,8 +1155,27 @@ button:active {
     .rank-actions {
         justify-content: flex-end;
     }
+    .home-secondary-actions {
+        grid-template-columns: repeat(2, minmax(160px, 240px));
+        justify-content: center;
+    }
     .rankmap-body {
         grid-template-columns: 1.2fr 0.8fr;
         align-items: stretch;
+    }
+}
+
+@media (max-width: 520px) {
+    .home-secondary-actions {
+        position: sticky;
+        bottom: 0;
+        padding-top: 8px;
+        background: linear-gradient(180deg, rgba(6,12,40,0) 0%, rgba(6,12,40,0.72) 28%, rgba(6,12,40,0.94) 100%);
+        z-index: 3;
+    }
+
+    .home-secondary-actions .secondary-btn {
+        font-size: 0.96rem;
+        min-height: 52px;
     }
 }
