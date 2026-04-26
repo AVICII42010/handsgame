@@ -1109,7 +1109,18 @@ class Game {
     }
 
     _planetPercentFromEnergy(totalEnergy) {
-        return Math.min(100, Math.floor((Number(totalEnergy) || 0) / 5));
+        const energy = Math.max(0, Number(totalEnergy) || 0);
+        const rank = this._rankByEnergyOnly(energy);
+        const meta = this._rankMeta(rank);
+        const nextMeta = this._rankMeta(Math.min(8, rank + 1));
+
+        if (rank >= 8 || !Number.isFinite(nextMeta.minEnergy) || nextMeta.minEnergy <= meta.minEnergy) {
+            return 100;
+        }
+
+        const range = Math.max(1, nextMeta.minEnergy - meta.minEnergy);
+        const progress = Math.max(0, Math.min(range, energy - meta.minEnergy));
+        return Math.max(0, Math.min(100, Math.floor((progress / range) * 100)));
     }
 
     _todayBestForPlayer(stats) {
