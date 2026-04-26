@@ -2446,8 +2446,8 @@ class Game {
         const stats = this._loadStats();
         const rank = this._statGetCurrentRank(stats);
         this.runRank = rank;
-        const baseSpeed = this.gameMode === 'normal' ? 5.8 : 5.3;
-        const boost = this.gameMode === 'challenge' ? (Math.max(0, rank - 1) * 0.14) : 0;
+        const baseSpeed = this.gameMode === 'normal' ? 5.8 : (this.gameMode === 'challenge' ? 4.6 : 5.3);
+        const boost = this.gameMode === 'challenge' ? (Math.max(0, rank - 1) * 0.08) : 0;
         this.speed = baseSpeed + boost;
         this.spawnInterval = 1500;
         this.obstacles = [];
@@ -2884,7 +2884,7 @@ class Game {
         if (this.slowMo > 0) this.slowMo = Math.max(0, this.slowMo - this.deltaFrames);
 
         // 增加速度 (Fever Mode 速度更快, SlowMo 减慢)
-        let targetSpeed = this.isFeverMode ? 7.4 : 5.8 + (this.score * 0.055);
+        let targetSpeed = this.isFeverMode ? 7.4 : (this.gameMode === 'challenge' ? 4.9 + (this.score * 0.04) : 5.8 + (this.score * 0.055));
         if (this.slowMo > 0) targetSpeed *= 0.4;
         this.speed += (targetSpeed - this.speed) * 0.05;
 
@@ -2913,7 +2913,7 @@ class Game {
                 let intervalBeats = this.isFeverMode ? 2 : (this.score < 10 ? 5 : (this.score < 25 ? 4 : 3));
                 if (this.gameMode === 'challenge') {
                     const tier = Math.floor(Math.max(0, (this.runRank || 1) - 1) / 3);
-                    intervalBeats = Math.max(1, intervalBeats - 1 - tier);
+                    intervalBeats = Math.max(2, intervalBeats - tier);
                 }
                 if (this.slowMo > 0) intervalBeats = Math.min(10, intervalBeats + 2);
 
@@ -2999,9 +2999,9 @@ class Game {
         this.monster.maxHp = baseHp + extraHp;
         this.monster.hp = this.monster.maxHp;
         this.monster.mistakes = 0;
-        this.monster.hitCooldownFrames = 36;
-        this.monster.introFrames = 60 * 2;
-        this.monster.requiredHoldFrames = 8;
+        this.monster.hitCooldownFrames = this.gameMode === 'challenge' ? 48 : 36;
+        this.monster.introFrames = this.gameMode === 'challenge' ? 60 * 3 : 60 * 2;
+        this.monster.requiredHoldFrames = this.gameMode === 'challenge' ? 6 : 8;
         this.monster.holdFrames = 0;
         this.monster.gesture = this.obstacleTypes[Math.floor(Math.random() * 3)];
         this.playSound(200, 'sawtooth', 1);
@@ -3017,7 +3017,7 @@ class Game {
             const required = winMap[this.monster.gesture] || 'rock';
             this.statusElement.innerText = `你需要快速伸出右边所示手势以战胜怪兽 ${introSeconds}s`;
             if (this.monster.introFrames === 0) {
-                this.monster.hitCooldownFrames = 20;
+                this.monster.hitCooldownFrames = this.gameMode === 'challenge' ? 28 : 20;
                 this.statusElement.innerText = `👾 怪兽出 ${this.obstacleIcons[this.monster.gesture]}  你要出 ${this.obstacleIcons[required]}`;
             }
             return;
@@ -3066,7 +3066,7 @@ class Game {
             this.createParticles(this.canvas.width / 2, this.canvas.height / 2, '#f1c40f');
             this.playSound(1100 + this.combo * 20, 'sine', 0.12);
             this.monster.gesture = this.obstacleTypes[Math.floor(Math.random() * 3)];
-            this.monster.hitCooldownFrames = 24;
+            this.monster.hitCooldownFrames = this.gameMode === 'challenge' ? 32 : 24;
 
             if (this.monster.hp <= 0) {
                 this.isBossPhase = false;
@@ -3088,7 +3088,7 @@ class Game {
             this.comboDisplayElement.innerText = this.combo;
             this.playSound(140, 'sawtooth', 0.18);
             this.createParticles(this.canvas.width / 2, this.canvas.height / 2, '#ff4757');
-            this.monster.hitCooldownFrames = 28;
+            this.monster.hitCooldownFrames = this.gameMode === 'challenge' ? 36 : 28;
             if (this.monster.mistakes >= 3) {
                 this.gameOver();
                 return;

@@ -715,7 +715,11 @@ button:active {
     height: 150px;
     z-index: 6;
     pointer-events: none;
-    display: none;
+    display: block;
+    opacity: 0.95;
+    border-radius: 14px;
+    background: rgba(8, 16, 36, 0.28);
+    box-shadow: 0 0 0 1px rgba(100, 190, 255, 0.14);
 }
 
 .home-top {
