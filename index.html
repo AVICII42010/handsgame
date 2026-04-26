@@ -88,7 +88,10 @@
                         <small>不使用摄像头，点击屏幕按钮模拟手势体验玩法</small>
                     </button>
                 </div>
-                <button id="leaderboard-btn" class="secondary-btn">排行榜</button>
+                <div class="home-secondary-actions">
+                    <button id="rules-btn" class="secondary-btn">规则说明</button>
+                    <button id="leaderboard-btn" class="secondary-btn">排行榜</button>
+                </div>
             </div>
 
             <div id="repair-setup-screen" class="screen hidden">
@@ -186,6 +189,28 @@
             </div>
 
             <div id="lb-toast" class="lb-toast hidden"></div>
+
+            <div id="rules-backdrop" class="lb-backdrop hidden"></div>
+            <div id="rules-panel" class="lb-panel rules-panel hidden" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+                <div class="lb-header">
+                    <div class="lb-title" id="rules-title">规则说明</div>
+                    <button id="rules-close-btn" class="lb-close" aria-label="关闭">×</button>
+                </div>
+                <div class="rules-content">
+                    <section class="rules-section">
+                        <h3>故事介绍</h3>
+                        <p>在能量逐渐熄灭的指尖星球上，玩家将化身星球守护者，通过手势或触摸收集能量、击退怪兽、修复装置，让一颗颗星球重新被点亮。</p>
+                    </section>
+                    <section class="rules-section">
+                        <h3>游戏玩法</h3>
+                        <p>模式一“能量同步站”需要根据画面提示快速做出正确手势，持续收集能量。模式二“怪兽能量战”中，要及时出能克制怪兽的手势完成对战。模式三“指尖修复舱”则根据指令完成指定手势，逐步修复装置。若摄像头受限，也可以通过触摸试玩 Demo 体验核心玩法。</p>
+                    </section>
+                    <section class="rules-section">
+                        <h3>游玩好处</h3>
+                        <p>游戏能锻炼手眼协调、反应速度和注意力，帮助玩家提升手指灵活度与节奏控制。轻松的闯关反馈也能增强参与感，让训练过程更有趣、更容易坚持。</p>
+                    </section>
+                </div>
+            </div>
 
             <div id="rankmap-backdrop" class="lb-backdrop hidden"></div>
             <div id="rankmap-panel" class="rankmap-panel hidden" role="dialog" aria-modal="true">

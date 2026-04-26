@@ -26,9 +26,13 @@ class Game {
         this.repairDiffWrap = document.getElementById('repair-difficulty');
         this.repairDiffNote = document.getElementById('repair-diff-note');
         this.leaderboardBtn = document.getElementById('leaderboard-btn');
+        this.rulesBtn = document.getElementById('rules-btn');
         this.lbBackdrop = document.getElementById('leaderboard-backdrop');
         this.lbPanel = document.getElementById('leaderboard-panel');
         this.lbCloseBtn = document.getElementById('lb-close-btn');
+        this.rulesBackdrop = document.getElementById('rules-backdrop');
+        this.rulesPanel = document.getElementById('rules-panel');
+        this.rulesCloseBtn = document.getElementById('rules-close-btn');
         this.lbControls = document.getElementById('lb-controls');
         this.lbList = document.getElementById('lb-list');
         this.lbSelf = document.getElementById('lb-self');
@@ -1432,6 +1436,16 @@ class Game {
         if (this.rankmapPanel) this.rankmapPanel.classList.add('hidden');
     }
 
+    _openRules() {
+        if (this.rulesBackdrop) this.rulesBackdrop.classList.remove('hidden');
+        if (this.rulesPanel) this.rulesPanel.classList.remove('hidden');
+    }
+
+    _closeRules() {
+        if (this.rulesBackdrop) this.rulesBackdrop.classList.add('hidden');
+        if (this.rulesPanel) this.rulesPanel.classList.add('hidden');
+    }
+
     _hideRankup() {
         if (this.rankupOverlay) this.rankupOverlay.classList.add('hidden');
     }
@@ -2357,8 +2371,11 @@ class Game {
         if (this.leaderboardBtn) {
             this.leaderboardBtn.addEventListener('click', () => this._openLeaderboard('today'));
         }
+        if (this.rulesBtn) this.rulesBtn.addEventListener('click', () => this._openRules());
         if (this.lbCloseBtn) this.lbCloseBtn.addEventListener('click', () => this._closeLeaderboard());
         if (this.lbBackdrop) this.lbBackdrop.addEventListener('click', () => this._closeLeaderboard());
+        if (this.rulesCloseBtn) this.rulesCloseBtn.addEventListener('click', () => this._closeRules());
+        if (this.rulesBackdrop) this.rulesBackdrop.addEventListener('click', () => this._closeRules());
         if (this.lbPanel) {
             this.lbPanel.querySelectorAll('.lb-tab').forEach((btn) => {
                 btn.addEventListener('click', () => {
@@ -2524,6 +2541,7 @@ class Game {
         this._startIdleLoop();
         this._syncBgm();
         this._closeLeaderboard();
+        this._closeRules();
         this._closeRankMap();
         this._hideRankup();
         this._renderHomeRank();
