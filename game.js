@@ -91,9 +91,9 @@ class Game {
             'like': '👍'
         };
 
-        this.speed = 3; // 初始速度从 5 降到 3
+        this.speed = 5;
         this.lastSpawnTime = 0;
-        this.spawnInterval = 3000; // 初始间隔从 2000 增加到 3000ms
+        this.spawnInterval = 2000;
         this.combo = 0;
         this.maxCombo = 0;
         this.particles = [];
@@ -106,7 +106,7 @@ class Game {
         this.bossSequence = [];
         this.bossStep = 0;
         this.bossTimer = 0;
-        this.nextMonsterAt = 15;
+        this.nextMonsterAt = 28;
         this.monster = {
             hp: 0,
             maxHp: 0,
@@ -195,6 +195,8 @@ class Game {
             t: 0
         };
         this._idleRaf = null;
+        this.lastFrameTime = 0;
+        this.deltaFrames = 1;
         this.rhythm = {
             lastBeat: -1,
             nextSpawnBeat: 0
@@ -443,7 +445,7 @@ class Game {
     }
 
     createParticles(x, y, color) {
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 8; i++) {
             this.particles.push({
                 x: x,
                 y: y,
@@ -459,9 +461,9 @@ class Game {
     updateParticles() {
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life -= 0.02;
+            p.x += p.vx * this.deltaFrames;
+            p.y += p.vy * this.deltaFrames;
+            p.life -= 0.02 * this.deltaFrames;
             if (p.life <= 0) this.particles.splice(i, 1);
         }
     }
@@ -1650,7 +1652,7 @@ class Game {
         this.bg.scanCanvas = null;
         this.bg.scanH = 0;
 
-        const starCount = Math.max(70, Math.min(140, Math.floor((w * h) * 0.00006)));
+        const starCount = Math.max(40, Math.min(90, Math.floor((w * h) * 0.000038)));
         for (let i = 0; i < starCount; i++) {
             const x = Math.random() * w;
             const y = Math.random() * h * 0.78;
@@ -1661,7 +1663,7 @@ class Game {
             this.bg.stars.push({ x, y, r, a, tw, ph });
         }
 
-        const nebulaCount = 3;
+        const nebulaCount = 2;
         for (let i = 0; i < nebulaCount; i++) {
             const x = Math.random() * w;
             const y = Math.random() * h * 0.7;
@@ -1673,7 +1675,7 @@ class Game {
             this.bg.nebula.push({ x, y, r, hue, a, vx, vy });
         }
 
-        const sparkleCount = Math.max(14, Math.min(28, Math.floor((w * h) * 0.000012)));
+        const sparkleCount = Math.max(8, Math.min(16, Math.floor((w * h) * 0.000007)));
         for (let i = 0; i < sparkleCount; i++) {
             const x = Math.random() * w;
             const y = Math.random() * h * 0.82;
@@ -2254,7 +2256,7 @@ class Game {
                 this._idleRaf = null;
                 return;
             }
-            this.runner.frame++;
+            this.runner.frame += this.deltaFrames;
             const key = !this.startScreen.classList.contains('hidden')
                 ? 'normal'
                 : (!this.repairSetupScreen.classList.contains('hidden') ? 'repair' : 'normal');
@@ -2430,6 +2432,8 @@ class Game {
         this.repairSetupScreen.classList.add('hidden');
         this.gameInfo.classList.remove('hidden');
         this.isPlaying = true;
+        this.lastFrameTime = 0;
+        this.deltaFrames = 1;
         this.isGameOver = false;
         this.score = 0;
         this.run.normalCorrect = 0;
@@ -2442,10 +2446,10 @@ class Game {
         const stats = this._loadStats();
         const rank = this._statGetCurrentRank(stats);
         this.runRank = rank;
-        const baseSpeed = this.gameMode === 'normal' ? 3.4 : 3;
-        const boost = this.gameMode === 'challenge' ? (Math.max(0, rank - 1) * 0.12) : 0;
+        const baseSpeed = this.gameMode === 'normal' ? 5.8 : 5.3;
+        const boost = this.gameMode === 'challenge' ? (Math.max(0, rank - 1) * 0.14) : 0;
         this.speed = baseSpeed + boost;
-        this.spawnInterval = 3000;
+        this.spawnInterval = 1500;
         this.obstacles = [];
         this.particles = [];
         this.scoreElement.innerText = '0';
@@ -2458,7 +2462,7 @@ class Game {
         this.aiSummaryElement.innerText = '';
         this.isBossPhase = false;
         this.bossTimer = 0;
-        this.nextMonsterAt = 15;
+        this.nextMonsterAt = 28;
         this.monster.hp = 0;
         this.monster.maxHp = 0;
         this.monster.gesture = 'rock';
@@ -2514,6 +2518,8 @@ class Game {
         this.startScreen.classList.remove('hidden');
         this.isPlaying = false;
         this.isGameOver = false;
+        this.lastFrameTime = 0;
+        this.deltaFrames = 1;
         // 清空画布
         this._startIdleLoop();
         this._syncBgm();
@@ -2533,6 +2539,8 @@ class Game {
         this.repairSetupScreen.classList.remove('hidden');
         this.isPlaying = false;
         this.isGameOver = false;
+        this.lastFrameTime = 0;
+        this.deltaFrames = 1;
         this._renderRepairDifficultyUi();
         const cached = this.getCachedRepairPlan();
         if (cached) {
@@ -2734,7 +2742,7 @@ class Game {
     updateRepairMode() {
         this.updateParticles();
 
-        this.repair.timeLeftFrames--;
+        this.repair.timeLeftFrames -= this.deltaFrames;
         if (this.repair.timeLeftFrames <= 0) {
             this.gameOver();
             return;
@@ -2750,7 +2758,7 @@ class Game {
         }
 
         if (isCorrect) {
-            this.repair.holdFrames++;
+            this.repair.holdFrames += this.deltaFrames;
             if (this.repair.holdFrames >= this.repair.holdNeedFrames) {
                 this.repair.holdFrames = 0;
                 this.repair.progress = Math.min(100, this.repair.progress + this.repair.progressStep);
@@ -2776,7 +2784,7 @@ class Game {
             }
         } else {
             this.repair.holdFrames = 0;
-            this.repair.noProgressFrames++;
+            this.repair.noProgressFrames += this.deltaFrames;
         }
 
         const seconds = Math.ceil(this.repair.timeLeftFrames / 60);
@@ -2859,7 +2867,7 @@ class Game {
 
         if (this.gameMode === 'normal' && !this.isBossPhase && !this.isFeverMode && this.score >= this.nextMonsterAt) {
             this.startBossPhase();
-            this.nextMonsterAt += 15;
+            this.nextMonsterAt += 22;
         }
 
         if (this.isBossPhase) {
@@ -2868,15 +2876,15 @@ class Game {
         }
 
         // 角色动画
-        this.runner.frame++;
+        this.runner.frame += this.deltaFrames;
         this.runner.jumpY = Math.sin(this.runner.frame * 0.2) * 5;
 
         // 技能持续时间更新
-        if (this.shield > 0) this.shield--;
-        if (this.slowMo > 0) this.slowMo--;
+        if (this.shield > 0) this.shield = Math.max(0, this.shield - this.deltaFrames);
+        if (this.slowMo > 0) this.slowMo = Math.max(0, this.slowMo - this.deltaFrames);
 
         // 增加速度 (Fever Mode 速度更快, SlowMo 减慢)
-        let targetSpeed = this.isFeverMode ? 6.6 : 3 + (this.score * 0.05);
+        let targetSpeed = this.isFeverMode ? 7.4 : 5.8 + (this.score * 0.055);
         if (this.slowMo > 0) targetSpeed *= 0.4;
         this.speed += (targetSpeed - this.speed) * 0.05;
 
@@ -2885,7 +2893,7 @@ class Game {
 
         // Fever 槽衰减
         if (this.isFeverMode) {
-            this.fever -= 0.2;
+            this.fever -= 0.2 * this.deltaFrames;
             if (this.fever <= 0) {
                 this.isFeverMode = false;
                 document.getElementById('fever-container').classList.remove('fever-active');
@@ -2901,8 +2909,8 @@ class Game {
                 this.rhythm.lastBeat = beatIdx;
                 const bpm = this.audio.track.bpm || 128;
                 const secPerBeat = 60 / bpm;
-                const travelBeats = this.isFeverMode ? 3 : (this.score < 10 ? 8 : (this.score < 25 ? 7 : 6));
-                let intervalBeats = this.isFeverMode ? 2 : (this.score < 10 ? 8 : (this.score < 25 ? 6 : 4));
+                const travelBeats = this.isFeverMode ? 2 : (this.score < 10 ? 5 : (this.score < 25 ? 4 : 3));
+                let intervalBeats = this.isFeverMode ? 2 : (this.score < 10 ? 5 : (this.score < 25 ? 4 : 3));
                 if (this.gameMode === 'challenge') {
                     const tier = Math.floor(Math.max(0, (this.runRank || 1) - 1) / 3);
                     intervalBeats = Math.max(1, intervalBeats - 1 - tier);
@@ -2913,13 +2921,13 @@ class Game {
                 if (beatIdx >= this.rhythm.nextSpawnBeat) {
                     const pxPerSec = Math.max(60, this.speed * 60);
                     const dist = pxPerSec * (travelBeats * secPerBeat);
-                    this.spawnObstacleWithX(Math.max(this.canvas.width, this.runner.x + this.runner.width + dist + 260));
+                    this.spawnObstacleWithX(Math.max(this.canvas.width, this.runner.x + this.runner.width + dist + 90));
                     this.rhythm.nextSpawnBeat = beatIdx + intervalBeats;
                 }
             }
         } else if (this.gameMode !== 'repair') {
             const now = Date.now();
-            const currentSpawnInterval = this.isFeverMode ? 800 : Math.max(1200, 3000 - (this.score * 20));
+            const currentSpawnInterval = this.isFeverMode ? 650 : Math.max(900, 1500 - (this.score * 10));
             if (now - this.lastSpawnTime > currentSpawnInterval) {
                 this.spawnObstacle();
                 this.lastSpawnTime = now;
@@ -2932,7 +2940,7 @@ class Game {
 
         for (let i = this.obstacles.length - 1; i >= 0; i--) {
             const obs = this.obstacles[i];
-            obs.x -= this.speed;
+            obs.x -= this.speed * this.deltaFrames;
 
             // 碰撞检测
             const distance = obs.x - (this.runner.x + this.runner.width);
@@ -2984,16 +2992,16 @@ class Game {
 
     startBossPhase() {
         this.isBossPhase = true;
-        this.bossTimer = 60 * 20;
+        this.bossTimer = 60 * 16;
         this.obstacles = [];
         const baseHp = 3;
         const extraHp = Math.min(5, Math.floor(this.score / 30));
         this.monster.maxHp = baseHp + extraHp;
         this.monster.hp = this.monster.maxHp;
         this.monster.mistakes = 0;
-        this.monster.hitCooldownFrames = 60;
-        this.monster.introFrames = 60 * 3;
-        this.monster.requiredHoldFrames = 10;
+        this.monster.hitCooldownFrames = 36;
+        this.monster.introFrames = 60 * 2;
+        this.monster.requiredHoldFrames = 8;
         this.monster.holdFrames = 0;
         this.monster.gesture = this.obstacleTypes[Math.floor(Math.random() * 3)];
         this.playSound(200, 'sawtooth', 1);
@@ -3003,19 +3011,19 @@ class Game {
 
     updateBossPhase() {
         if (this.monster.introFrames > 0) {
-            this.monster.introFrames--;
+            this.monster.introFrames -= this.deltaFrames;
             const introSeconds = Math.ceil(this.monster.introFrames / 60);
             const winMap = { rock: 'paper', paper: 'scissors', scissors: 'rock' };
             const required = winMap[this.monster.gesture] || 'rock';
             this.statusElement.innerText = `你需要快速伸出右边所示手势以战胜怪兽 ${introSeconds}s`;
             if (this.monster.introFrames === 0) {
-                this.monster.hitCooldownFrames = 30;
+                this.monster.hitCooldownFrames = 20;
                 this.statusElement.innerText = `👾 怪兽出 ${this.obstacleIcons[this.monster.gesture]}  你要出 ${this.obstacleIcons[required]}`;
             }
             return;
         }
 
-        this.bossTimer--;
+        this.bossTimer -= this.deltaFrames;
         if (this.bossTimer <= 0) {
             this.gameOver();
             return;
@@ -3025,7 +3033,7 @@ class Game {
         const seconds = Math.ceil(this.bossTimer / 60);
 
         if (this.monster.hitCooldownFrames > 0) {
-            this.monster.hitCooldownFrames--;
+            this.monster.hitCooldownFrames -= this.deltaFrames;
             const winMap = { rock: 'paper', paper: 'scissors', scissors: 'rock' };
             const required = winMap[this.monster.gesture] || 'rock';
             this.statusElement.innerText = `👾 怪兽出 ${this.obstacleIcons[this.monster.gesture]}  你要出 ${this.obstacleIcons[required]}  剩余 ${seconds}s`;
@@ -3043,7 +3051,7 @@ class Game {
         const required = winMap[this.monster.gesture] || 'rock';
 
         if (currentGesture === required) {
-            this.monster.holdFrames++;
+            this.monster.holdFrames += this.deltaFrames;
             if (this.monster.holdFrames < this.monster.requiredHoldFrames) {
                 this.statusElement.innerText = `👾 怪兽出 ${this.obstacleIcons[this.monster.gesture]}  你要出 ${this.obstacleIcons[required]}  （保持一下）剩余 ${seconds}s`;
                 return;
@@ -3058,7 +3066,7 @@ class Game {
             this.createParticles(this.canvas.width / 2, this.canvas.height / 2, '#f1c40f');
             this.playSound(1100 + this.combo * 20, 'sine', 0.12);
             this.monster.gesture = this.obstacleTypes[Math.floor(Math.random() * 3)];
-            this.monster.hitCooldownFrames = 35;
+            this.monster.hitCooldownFrames = 24;
 
             if (this.monster.hp <= 0) {
                 this.isBossPhase = false;
@@ -3069,7 +3077,7 @@ class Game {
                 this._syncBgm();
             }
         } else if (currentGesture === loseMap[this.monster.gesture]) {
-            this.monster.holdFrames++;
+            this.monster.holdFrames += this.deltaFrames;
             if (this.monster.holdFrames < this.monster.requiredHoldFrames) {
                 this.statusElement.innerText = `👾 注意：现在会输给怪兽！把手势换成 ${this.obstacleIcons[required]}  剩余 ${seconds}s`;
                 return;
@@ -3080,7 +3088,7 @@ class Game {
             this.comboDisplayElement.innerText = this.combo;
             this.playSound(140, 'sawtooth', 0.18);
             this.createParticles(this.canvas.width / 2, this.canvas.height / 2, '#ff4757');
-            this.monster.hitCooldownFrames = 40;
+            this.monster.hitCooldownFrames = 28;
             if (this.monster.mistakes >= 3) {
                 this.gameOver();
                 return;
@@ -3715,6 +3723,11 @@ class Game {
 
     gameLoop() {
         if (!this.isPlaying) return;
+        const now = performance.now();
+        if (!this.lastFrameTime) this.lastFrameTime = now;
+        const elapsedMs = now - this.lastFrameTime;
+        this.lastFrameTime = now;
+        this.deltaFrames = Math.max(0.6, Math.min(2.5, elapsedMs / (1000 / 60)));
         this.update();
         this.draw();
         requestAnimationFrame(() => this.gameLoop());

@@ -715,6 +715,7 @@ button:active {
     height: 150px;
     z-index: 6;
     pointer-events: none;
+    display: none;
 }
 
 .home-top {
