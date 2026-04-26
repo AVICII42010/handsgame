@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>指尖星球 - AI手势识别体感闯关小游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <video id="webcam" autoplay playsinline muted webkit-playsinline="true" x5-playsinline="true" x5-video-player-type="h5" disablepictureinpicture></video>
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui-overlay">
+            <div id="loading-screen" class="screen">
+                <h1>指尖星球</h1>
+                <p>正在唤醒指尖能量...</p>
+                <p class="hint">如出现资源加载失败，请确认本地服务正在运行，或改用系统浏览器打开 HTTPS 地址。</p>
+                <div class="loader"></div>
+            </div>
+
+            <div id="start-screen" class="screen hidden">
+                <div class="planet-glow"></div>
+                <h1>指尖星球</h1>
+                <p class="subtitle">用你的手势与触摸能量，点亮整颗星球</p>
+
+                <div id="camera-permission" class="camera-permission hidden">
+                    <div class="camera-permission-title">需要摄像头权限</div>
+                    <div class="camera-permission-desc" id="camera-status">手机端请点击下方按钮授权摄像头。</div>
+                    <button id="camera-enable-btn" class="secondary-btn small-btn">启用摄像头</button>
+                    <div id="browser-open-tip" class="browser-open-tip hidden"></div>
+                    <div class="camera-policy">
+                        <div class="camera-policy-title">权限说明</div>
+                        <div class="camera-policy-text">开启摄像头后，可通过手势参与游戏。我们仅将摄像头用于实时手势识别和体感交互，不进行人脸识别，不录制、不保存、不上传任何画面内容。</div>
+                        <div class="camera-policy-text">只有在你主动点击“启用摄像头”或开始游戏后，才会申请摄像头权限。</div>
+                    </div>
+                </div>
+
+                <div class="home-top">
+                    <div class="rank-card">
+                        <div class="rank-planet" id="home-rank-planet" aria-hidden="true"></div>
+                        <div class="rank-main">
+                            <div class="rank-name">
+                                <span id="home-rank-name">水星</span>
+                                <span class="rank-title-mini" id="home-rank-title">水星旅人</span>
+                            </div>
+                            <div class="rank-progress">
+                                总能量 <span id="home-total-energy">0</span>
+                                <span class="rank-progress-sep">/</span>
+                                <span id="home-next-energy">199</span>
+                            </div>
+                            <div class="rank-sub" id="home-rank-sub">点亮下一颗行星，继续向外扩张你的星系。</div>
+                        </div>
+                        <button id="rankmap-btn" class="secondary-btn small-btn">星系段位图</button>
+                    </div>
+                    <div class="rank-actions">
+                        <button id="daily-reward-btn" class="secondary-btn small-btn hidden">领取段位奖励</button>
+                        <div id="gesture-style-panel" class="gesture-style hidden">
+                            <div class="gesture-style-title">识别框特效</div>
+                            <div class="gesture-style-row">
+                                <input id="gesture-frame-color" type="color" value="#00ff00" aria-label="识别框颜色">
+                                <span class="gesture-style-note" id="gesture-style-note">火星以上可自定义</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="mode-desc">选择模式，开始你的指尖守护之旅：</p>
+                <div class="mode-buttons">
+                    <button id="normal-mode-btn" class="mode-btn">
+                        <span class="mode-icon">✨</span>
+                        <strong>能量同步站</strong><br>
+                        <small>识别成功可收集能量，能量足够时会触发怪兽来袭</small>
+                    </button>
+                    <button id="challenge-mode-btn" class="mode-btn challenge">
+                        <span class="mode-icon">👾</span>
+                        <strong>怪兽能量战</strong><br>
+                        <small>直接对战：打出能赢怪兽的手势</small>
+                    </button>
+                    <button id="repair-mode-btn" class="mode-btn repair">
+                        <span class="mode-icon">🛰️</span>
+                        <strong>指尖修复舱</strong><br>
+                        <small>按指令完成手势组合，修复装置并点亮星球</small>
+                    </button>
+                    <button id="touch-demo-btn" class="mode-btn touch-demo">
+                        <span class="mode-icon">👆</span>
+                        <strong>触摸试玩 Demo</strong><br>
+                        <small>不使用摄像头，点击屏幕按钮模拟手势体验玩法</small>
+                    </button>
+                </div>
+                <button id="leaderboard-btn" class="secondary-btn">排行榜</button>
+            </div>
+
+            <div id="repair-setup-screen" class="screen hidden">
+                <h1>指尖修复舱</h1>
+                <p class="mode-desc">输入身体情况与训练目标，AI 教练会生成个性化建议</p>
+                <div class="form">
+                    <label class="field">
+                        <span>身体情况</span>
+                        <textarea id="health-input" rows="3" placeholder="例如：手指僵硬、术后恢复、长期办公手酸、轻度腱鞘炎等"></textarea>
+                    </label>
+                    <label class="field">
+                        <span>训练目标</span>
+                        <textarea id="goal-input" rows="3" placeholder="例如：提升手指灵活度、改善握力、提高反应速度、减轻疲劳等"></textarea>
+                    </label>
+                    <label class="field">
+                        <span>DeepSeek API Key（可选）</span>
+                        <input id="api-key-input" type="password" placeholder="sk-..." autocomplete="off">
+                    </label>
+                    <div id="ai-plan-preview" class="ai-preview hidden"></div>
+                    <div id="repair-difficulty" class="difficulty">
+                        <div class="difficulty-title">训练难度</div>
+                        <div class="difficulty-options" role="tablist" aria-label="训练难度">
+                            <button class="difficulty-btn active" data-diff="easy" role="tab" aria-selected="true">简单</button>
+                            <button class="difficulty-btn" data-diff="normal" role="tab" aria-selected="false">标准</button>
+                            <button class="difficulty-btn" data-diff="hard" role="tab" aria-selected="false">困难</button>
+                        </div>
+                        <div class="difficulty-note" id="repair-diff-note">简单：更容易点亮进度</div>
+                    </div>
+                    <div class="mode-buttons">
+                        <button id="ai-generate-btn" class="mode-btn">
+                            <span class="mode-icon">🤖</span>
+                            <strong>生成训练建议</strong><br>
+                            <small>会根据输入给出鼓励话术与难度建议</small>
+                        </button>
+                        <button id="ai-start-btn" class="mode-btn repair">
+                            <span class="mode-icon">🎯</span>
+                            <strong>开始修复</strong><br>
+                            <small>进入训练</small>
+                        </button>
+                        <button id="ai-skip-btn" class="secondary-btn">跳过 AI（使用默认方案）</button>
+                        <button id="ai-back-btn" class="secondary-btn">返回首页</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="game-info" class="hidden">
+                <div class="stat">⚡ 能量: <span id="score">0</span></div>
+                <div class="stat">🎯 手势: <span id="gesture-status">等待指令...</span></div>
+                <div id="fever-container">
+                    <div id="fever-bar"></div>
+                </div>
+                <div class="stat small">🔥 连击: <span id="combo-display">0</span></div>
+                <div id="ai-coach" class="ai-coach hidden">AI教练：准备就绪</div>
+                <div id="touch-controls" class="touch-controls hidden">
+                    <div class="touch-controls-title">触摸手势</div>
+                    <div class="touch-controls-row">
+                        <button class="touch-gesture-btn" data-gesture="rock">✊ 石头</button>
+                        <button class="touch-gesture-btn" data-gesture="paper">🖐️ 布</button>
+                        <button class="touch-gesture-btn" data-gesture="scissors">✌️ 剪刀</button>
+                        <button class="touch-gesture-btn" data-gesture="like">👍 点赞</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="game-over-screen" class="screen hidden">
+                <h1>关卡结束</h1>
+                <p class="result-score">本局能量：<span id="final-score">0</span></p>
+                <p class="rank-progress">段位：<span id="final-rank-name">水星</span> · 总能量：<span id="final-total-energy">0</span></p>
+                <p class="planet-progress">星球点亮：<span id="planet-percent">0</span>%</p>
+                <p class="rank-title" id="rank-title">称号：新手守护者</p>
+                <div id="ai-summary" class="ai-preview hidden"></div>
+                <div class="mode-buttons">
+                    <button id="restart-btn">再战一局</button>
+                    <button id="home-btn" class="secondary-btn">返回首页</button>
+                </div>
+            </div>
+
+            <div id="leaderboard-backdrop" class="lb-backdrop hidden"></div>
+            <div id="leaderboard-panel" class="lb-panel hidden" role="dialog" aria-modal="true">
+                <div class="lb-header">
+                    <div class="lb-title">排行榜</div>
+                    <button id="lb-close-btn" class="lb-close" aria-label="关闭">×</button>
+                </div>
+                <div class="lb-tabs">
+                    <button class="lb-tab active" data-tab="today">今日排行</button>
+                    <button class="lb-tab" data-tab="total">总榜</button>
+                    <button class="lb-tab" data-tab="friends">好友排行</button>
+                </div>
+                <div id="lb-controls" class="lb-controls hidden">
+                    <button class="lb-metric active" data-metric="bestScore">按最高单局</button>
+                    <button class="lb-metric" data-metric="totalEnergy">按累计能量</button>
+                </div>
+                <div id="lb-list" class="lb-list"></div>
+                <div id="lb-self" class="lb-self"></div>
+            </div>
+
+            <div id="lb-toast" class="lb-toast hidden"></div>
+
+            <div id="rankmap-backdrop" class="lb-backdrop hidden"></div>
+            <div id="rankmap-panel" class="rankmap-panel hidden" role="dialog" aria-modal="true">
+                <div class="lb-header">
+                    <div class="lb-title">星系段位图</div>
+                    <button id="rankmap-close-btn" class="lb-close" aria-label="关闭">×</button>
+                </div>
+                <div class="rankmap-body">
+                    <div id="rankmap-orbits" class="rankmap-orbits" aria-label="星系段位图"></div>
+                    <div id="rankmap-info" class="rankmap-info">将鼠标悬停或点击行星，查看晋级条件与奖励。</div>
+                </div>
+            </div>
+
+            <div id="rankup-overlay" class="rankup-overlay hidden" role="dialog" aria-modal="true">
+                <div class="rankup-card">
+                    <div class="rankup-planet" id="rankup-planet" aria-hidden="true"></div>
+                    <div class="rankup-title" id="rankup-title">恭喜晋级！</div>
+                    <div class="rankup-sub" id="rankup-sub">距离太阳又近了一步。</div>
+                    <button id="rankup-close-btn" class="secondary-btn">继续</button>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="output_canvas"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script type="module" src="game.js"></script>
+</body>
+</html>
